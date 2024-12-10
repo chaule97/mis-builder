@@ -24,15 +24,10 @@ class MisBudgetByAccountItem(models.Model):
         store=True,
         currency_field="company_currency_id",
     )
-    company_id = fields.Many2one(
-        "res.company",
-        related="account_id.company_id",
-        readonly=True,
-        store=True,
-    )
+    company_id = fields.Many2one("res.company", compute="_compute_company_id")
     company_currency_id = fields.Many2one(
         "res.currency",
-        related="account_id.company_id.currency_id",
+        related="account_id.company_currency_id",
         string="Company Currency",
         help="Utility field to express amount currency",
         store=True,
@@ -57,6 +52,15 @@ class MisBudgetByAccountItem(models.Model):
             "Credit and debit should be positive.",
         ),
     ]
+
+    @api.depends_context("company")
+    @api.depends("account_id")
+    def _compute_company_id(self):
+        for rec in self:
+            if self.env.company in rec.account_id.company_ids:
+                rec.company_id = self.env.company
+            else:
+                rec.company_id = rec.account_id.company_ids[0]
 
     @api.depends("debit", "credit")
     def _compute_balance(self):
