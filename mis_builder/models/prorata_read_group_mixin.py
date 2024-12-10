@@ -1,7 +1,7 @@
 # Copyright 2020 ACSONE SA/NV
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.exceptions import UserError
 from odoo.fields import Date
 
@@ -29,7 +29,7 @@ class ProRataReadGroupMixin(models.AbstractModel):
         elif operator in ("<=", "<"):
             return [("date_from", operator, value)]
         raise UserError(
-            _("Unsupported operator %s for searching on date") % (operator,)
+            self.env._("Unsupported operator %s for searching on date", operator)
         )
 
     @api.model
@@ -71,7 +71,7 @@ class ProRataReadGroupMixin(models.AbstractModel):
             res = {}
             sum_fields = set(fields) - set(groupby)
             read_fields = set(fields + ["date_from", "date_to"])
-            for item in self.search(domain).read(read_fields):
+            for item in self.search_read(domain, read_fields):
                 key = tuple(item[k] for k in groupby)
                 if key not in res:
                     res[key] = {k: item[k] for k in groupby}
